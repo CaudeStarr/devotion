@@ -39,6 +39,8 @@ int ratStatusbarModificationCount = -1;
 int hudMovementKeysModificationCount = -1;
 qboolean hudMovementKeysRegistered = qfalse;
 
+int hudModificationCount = -1;
+
 static void CG_RegisterMovementKeysShaders(void);
 static void CG_RegisterNumbers(void);
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum );
@@ -492,6 +494,7 @@ vmCvar_t	cg_crosshairHitColorTime;
 vmCvar_t	cg_drawItemPickups;
 vmCvar_t	cg_drawAccel;
 vmCvar_t	cg_mapoverview;
+vmCvar_t	cg_hud;
 
 #define MASTER_SERVER_NAME "dpmaster.deathmask.net"
 
@@ -911,7 +914,8 @@ static cvarTable_t cvarTable[] = { // bk001129
 	{&cg_crosshairHitColorTime, "cg_crosshairHitColorTime", "3", CVAR_ARCHIVE},
 	{&cg_drawItemPickups, "cg_drawItemPickups", "1", CVAR_ARCHIVE},
 	{&cg_drawAccel, "cg_drawAccel", "1", CVAR_ARCHIVE},
-	{&cg_mapoverview, "cg_mapOverview", "0", CVAR_ARCHIVE}
+	{&cg_mapoverview, "cg_mapOverview", "0", CVAR_ARCHIVE},
+	{&cg_hud, "cg_hud", "hud/default.cfg", CVAR_ARCHIVE}
 };
 
 static int  cvarTableSize = sizeof( cvarTable ) / sizeof( cvarTable[0] );
@@ -1297,6 +1301,15 @@ void CG_UpdateCvars( void ) {
 	if ( ratStatusbarModificationCount != cg_altStatusbar.modificationCount ) {
 		CG_RegisterNumbers();
 		ratStatusbarModificationCount = cg_altStatusbar.modificationCount;
+	}
+
+	if( hudModificationCount != cg_hud.modificationCount ){
+		//for( i = 0; i < HUD_MAX ; i++ ){
+
+		//}
+		hudModificationCount = cg_hud.modificationCount;
+		CG_ClearHud();
+		CG_LoadHudFile( cg_hud.string );
 	}
 	
 	if ( hudMovementKeysModificationCount != cg_hudMovementKeys.modificationCount && !hudMovementKeysRegistered ) {

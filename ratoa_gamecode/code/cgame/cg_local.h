@@ -2258,6 +2258,7 @@ extern	vmCvar_t		cg_crosshairHitColorTime;
 extern	vmCvar_t		cg_drawItemPickups;
 extern	vmCvar_t		cg_drawAccel;
 extern	vmCvar_t		cg_mapoverview;
+extern	vmCvar_t		cg_hud;
 
 //unlagged - cg_unlagged.c
 void CG_PredictWeaponEffects( centity_t *cent );
@@ -2679,6 +2680,15 @@ void CG_Respawn( void );
 void CG_TransitionPlayerState( playerState_t *ps, playerState_t *ops );
 void CG_CheckChangedPredictableEvents( playerState_t *ps );
 void CG_PushReward(sfxHandle_t sfx, qhandle_t shader, int rewardCount);
+
+//
+// cg_superHud.c
+//
+void CG_HudEdit_f( void );
+void CG_ClearHud( void );
+void CG_LoadHudFile( const char* hudFile );
+void CG_WriteHudFile_f( void );
+
 
 
 //===============================================

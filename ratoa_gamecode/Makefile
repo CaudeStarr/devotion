@@ -1646,6 +1646,7 @@ Q3CGOBJ_ = \
   $(B)/baseq3/cgame/cg_consolecmds.o \
   $(B)/baseq3/cgame/cg_draw.o \
   $(B)/baseq3/cgame/cg_drawtools.o \
+  $(B)/baseq3/cgame/cg_superHud.o \
   $(B)/baseq3/cgame/cg_effects.o \
   $(B)/baseq3/cgame/cg_ents.o \
   $(B)/baseq3/cgame/cg_event.o \
