@@ -4,3 +4,4 @@ tags
 *.swp
 *~
 build*.sh
+Makefile.local

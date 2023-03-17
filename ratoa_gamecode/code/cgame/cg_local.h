@@ -591,6 +591,142 @@ typedef struct {
 	int numpositions;
 } skulltrail_t;
 
+//=====================================SUPERHUD=========================
+
+// hudElements_t
+// struct to save all the hudelement data
+typedef struct {
+	qboolean inuse;
+	int xpos;
+	int ypos;
+	int width;
+	int height;
+	float color[4];
+	float bgcolor[4];
+	qboolean fill;
+	int fontWidth;
+	int fontHeight;
+	char *image;
+	char *text;
+	int textAlign;
+	int textstyle;
+	int time;
+	qhandle_t imageHandle;
+	int teamColor;
+	int teamBgColor;
+	char *cvar;
+	int cvarValue;
+} hudElements_t;
+
+enum{
+	HUD_DEFAULT,
+	HUD_AMMOWARNING,
+	HUD_ATTACKERICON,
+	HUD_ATTACKERNAME,
+	HUD_CHAT1,
+	HUD_CHAT2,
+	HUD_CHAT3,
+	HUD_CHAT4,
+	HUD_CHAT5,
+	HUD_CHAT6,
+	HUD_CHAT7,
+	HUD_CHAT8,
+	HUD_FS_OWN,
+	HUD_FS_NME,
+	HUD_FOLLOW,
+	HUD_FPS,
+	HUD_FRAGMSG,
+	HUD_GAMETIME,
+	HUD_CATIME,
+	HUD_GAMETYPE,
+	HUD_ITEMPICKUPNAME,
+	HUD_ITEMPICKUPTIME,
+	HUD_ITEMPICKUPICON,
+	HUD_NETGRAPH,
+	HUD_NETGRAPHPING,
+	HUD_SPEED,
+	HUD_ACCEL,
+	HUD_PU1,
+	HUD_PU2,
+	HUD_PU3,
+	HUD_PU4,
+	HUD_PU1ICON,
+	HUD_PU2ICON,
+	HUD_PU3ICON,
+	HUD_PU4ICON,
+	HUD_RANKMSG,
+	HUD_SCORELIMIT,
+	HUD_SCORENME,
+	HUD_SCOREOWN,
+	HUD_SPECMESSAGE,
+	HUD_ARMORBAR,
+	HUD_ARMORCOUNT,
+	HUD_ARMORICON,
+	HUD_AMMOBAR,
+	HUD_AMMOCOUNT,
+	HUD_AMMOICON,
+	HUD_HEALTHBAR,
+	HUD_HEALTHCOUNT,
+	HUD_HEALTHICON,
+	HUD_TARGETNAME,
+	HUD_TARGETSTATUS,
+	HUD_TC_NME,
+	HUD_TC_OWN,
+	HUD_TI_NME,
+	HUD_TI_OWN,
+	HUD_TEAMCHAT1,
+	HUD_TEAMCHAT2,
+	HUD_TEAMCHAT3,
+	HUD_TEAMCHAT4,
+	HUD_TEAMCHAT5,
+	HUD_TEAMCHAT6,
+	HUD_TEAMCHAT7,
+	HUD_TEAMCHAT8,
+	HUD_VOTEMSG,
+	HUD_WARMUP,
+	HUD_WEAPONLIST,
+	HUD_READYSTATUS,
+	HUD_DEATHNOTICE1,
+	HUD_DEATHNOTICE2,
+	HUD_DEATHNOTICE3,
+	HUD_DEATHNOTICE4,
+	HUD_DEATHNOTICE5,
+	HUD_COUNTDOWN,
+	HUD_RESPAWNTIMER,
+	HUD_STATUSBARFLAG,
+	HUD_TEAMOVERLAY1,
+	HUD_TEAMOVERLAY2,
+	HUD_TEAMOVERLAY3,
+	HUD_TEAMOVERLAY4,
+	HUD_TEAMOVERLAY5,
+	HUD_TEAMOVERLAY6,
+	HUD_TEAMOVERLAY7,
+	HUD_TEAMOVERLAY8,
+	HUD_REWARD,
+	HUD_REWARDCOUNT,
+	HUD_CONSOLE,
+	HUD_PREDECORATE1,
+	HUD_PREDECORATE2,
+	HUD_PREDECORATE3,
+	HUD_PREDECORATE4,
+	HUD_PREDECORATE5,
+	HUD_PREDECORATE6,
+	HUD_PREDECORATE7,
+	HUD_PREDECORATE8,
+	HUD_POSTDECORATE1,
+	HUD_POSTDECORATE2,
+	HUD_POSTDECORATE3,
+	HUD_POSTDECORATE4,
+	HUD_POSTDECORATE5,
+	HUD_POSTDECORATE6,
+	HUD_POSTDECORATE7,
+	HUD_POSTDECORATE8,
+
+	HUD_MAX
+};
+
+//=========================SUPERHUD END==================================
+
 
 #define MAX_REWARDSTACK		10
 #define MAX_SOUNDBUFFER		30
@@ -864,12 +1000,27 @@ typedef struct {
 
 	int elimLastPlayerTime;
 
-	int lastHitTime;
-	int lastHitDamage;
+	int lastHitTime[64];
+	int lastHitDamage[64];
 
 	dotbar_t healthbar;
 	dotbar_t armorbar;
 	dotbar_t weaponbar;
+
+	vec3_t		accel;
+	vec3_t		lastaccel;
+	int		AccelTime;
+	int		lastAccelTime;
+
+	int		speed;
+
+	char		fragMessage[512];
+	int		fragMessageTime;
+	char		rankMessage[512];
+	int		rankMessageTime;
+
+	int		quadKills;
+	qboolean	forceChat;
 } cg_t;
 
 
@@ -896,6 +1047,7 @@ typedef struct {
 	qhandle_t	neutralFlagModel;
 	qhandle_t	redFlagShader[3];
 	qhandle_t	blueFlagShader[3];
+	qhandle_t	neutralFlagShader[3];
 	qhandle_t	flagShader[4];
 
 // For Treasure Hunter:
@@ -1448,6 +1600,15 @@ typedef struct {
 	*/
 	sfxHandle_t	freezeSound;
 
+	// new media
+	qhandle_t	redMarker;
+	qhandle_t	blueMarker;
+	qhandle_t	playericon;
+	qhandle_t	grenadeMapoverview;
+	qhandle_t	rocketMapoverview;
+	qhandle_t	plasmaMapoverview;
+	qhandle_t	bfgMapoverview;
+
 } cgMedia_t;
 
 #define CONSOLE_MAXHEIGHT 40
@@ -1473,6 +1634,10 @@ typedef struct {
 #define HELPMOTDSTATE_RECEIVED 1
 #define HELPMOTDSTATE_SHOWN    2
 #define HELPMOTDSTATE_HIDDEN   4
+
+#define DEATHNOTICE_HEIGHT	5
+
+#define MAX_RESPAWN_TIMERS	16
 
 // The client game static (cgs) structure hold everything
 // loaded or calculated from the gamestate.  It will NOT
@@ -1591,11 +1756,13 @@ typedef struct {
 
 	clientInfo_t	clientinfo[MAX_CLIENTS];
 
+/*
 	console_t commonConsole;
 	console_t console;
 	console_t chat;
 	console_t teamChat;
 	console_t helpMotdConsole;
+*/
 
 	int helpMotdState;
 
@@ -1640,18 +1807,56 @@ typedef struct {
 	int				delagHitscan;
 //unlagged - client options
 //KK-OAX For storing whether or not the server has multikills enabled. 
-    int             altExcellent;
+	int             altExcellent;
 
-    int		startWhenReady;
-    int		rocketSpeed;
-    int		delagMissileMaxLatency;
-    int		predictedMissileNudge;
-    int		ratFlags;
-    movement_t	movement;
-    float	maxBrightshellAlpha;
-    int		timeoutEnd;
-    int		timeoutOvertime;
-    char	sv_hostname[MAX_QPATH];
+	int		startWhenReady;
+	int		rocketSpeed;
+	int		delagMissileMaxLatency;
+	int		predictedMissileNudge;
+	int		ratFlags;
+	movement_t	movement;
+	float		maxBrightshellAlpha;
+	int		timeoutEnd;
+	int		timeoutOvertime;
+	char		sv_hostname[MAX_QPATH];
+
+	hudElements_t	hud[HUD_MAX];
+	int		csStatus;
+
+
+	char		chatMsgs[TEAMCHAT_HEIGHT][TEAMCHAT_WIDTH * 3 + 1];
+	int		chatMsgTimes[TEAMCHAT_HEIGHT];
+	int		chatPos;
+	int		lastChatPos;
+
+	char		consoleMsgs[TEAMCHAT_HEIGHT][TEAMCHAT_WIDTH * 3 + 1];
+	int		consoleMsgTimes[TEAMCHAT_HEIGHT];
+	int		consolePos;
+	int		lastConsolePos;
+
+	int		deathNoticeTime[ DEATHNOTICE_HEIGHT ];
+	char		deathNoticeName1[ DEATHNOTICE_HEIGHT ][ MAX_NAME_LENGTH ];
+	char		deathNoticeName2[ DEATHNOTICE_HEIGHT ][ MAX_NAME_LENGTH ];
+	int		deathNoticeTeam1[ DEATHNOTICE_HEIGHT ];
+	int		deathNoticeTeam2[ DEATHNOTICE_HEIGHT ];
+	qhandle_t 	deathNoticeIcon1[ DEATHNOTICE_HEIGHT ];
+	qhandle_t 	deathNoticeIcon2[ DEATHNOTICE_HEIGHT ];
+	qboolean 	deathNoticeTwoIcons[ DEATHNOTICE_HEIGHT ];
+
+	qboolean	respawnTimerUsed[ MAX_RESPAWN_TIMERS ];
+	int		respawnTimerEntitynum[ MAX_RESPAWN_TIMERS ];
+	int		respawnTimerType[ MAX_RESPAWN_TIMERS ];
+	int		respawnTimerQuantity[ MAX_RESPAWN_TIMERS ];
+	int		respawnTimerTime[ MAX_RESPAWN_TIMERS ];
+	int		respawnTimerNumber;
+	int		respawnTimerNextItem[ MAX_RESPAWN_TIMERS ];
+	int		respawnTimerTeam[ MAX_RESPAWN_TIMERS ];
+	int		respawnTimerClientNum[MAX_RESPAWN_TIMERS];
+
+	int		timeout;
+	int		crosshair[WP_NUM_WEAPONS];
+	int		crosshairSize[WP_NUM_WEAPONS];
+
 } cgs_t;
 
 //==============================================================================
@@ -2042,6 +2247,18 @@ extern vmCvar_t                 cg_weaponOrder;
 extern vmCvar_t			cg_chatBeep;
 extern vmCvar_t			cg_teamChatBeep;
 
+extern	vmCvar_t		cg_lowHealthPercentile;
+extern	vmCvar_t		cg_inverseTimer;
+extern	vmCvar_t		cg_selfOnTeamOverlay;
+extern	vmCvar_t		cg_deathNoticeTime;
+extern	vmCvar_t		cg_drawCenterprint;
+extern	vmCvar_t		cg_crosshairHitColorStyle;
+//extern	vmCvar_t		cg_crosshairColor;
+extern	vmCvar_t		cg_crosshairHitColorTime;
+extern	vmCvar_t		cg_drawItemPickups;
+extern	vmCvar_t		cg_drawAccel;
+extern	vmCvar_t		cg_mapoverview;
+
 //unlagged - cg_unlagged.c
 void CG_PredictWeaponEffects( centity_t *cent );
 int CG_ReliablePing( void );
@@ -2211,12 +2428,17 @@ const char *CG_GameTypeString( void );
 qboolean CG_YourTeamHasFlag( void );
 qboolean CG_OtherTeamHasFlag( void );
 qhandle_t CG_StatusHandle(int task);
-void CG_AddToGenericConsole( const char *str, console_t *console );
-void CG_ClearGenericConsole(console_t *console);
+//void CG_AddToGenericConsole( const char *str, console_t *console );
+//void CG_ClearGenericConsole(console_t *console);
+void CG_AddToConsole ( const char *str );
+void CG_AddToChat ( const char *str );
+void CG_AddToTeamChat ( const char *str );
+/*
 int CG_Reward2Time(int idx);
 void CG_ResetStatusbar(void);
 void CG_Ratstatusbar4RegisterShaders(void);
 void CG_Ratstatusbar3RegisterShaders(void);
+*/
 #ifdef WITH_MULTITOURNAMENT
 int CG_GetScoresMtrn(int scoreNum);
 #endif
@@ -2320,6 +2542,7 @@ void CG_DrawWeaponBar7(int count, int bits, float *color);
 void CG_DrawWeaponBar8(int count, int bits, float *color);
 void CG_DrawWeaponBar9(int count, int bits, float *color);
 void CG_DrawWeaponBar10(int count, int bits, float *color);
+void CG_DrawWeaponBar11(int count, int bits);
 void CG_DrawWeaponBar12(int count, int bits, float *color);
 void CG_DrawWeaponBar13(int count, int bits, float *color);
 void CG_DrawWeaponBar14(int count, int bits, float *color);

@@ -1529,7 +1529,8 @@ CG_AddToTeamChat
 
 =======================
 */
-static void CG_AddToTeamChat( const char *str ) {
+/*
+void CG_AddToTeamChat( const char *str ) {
 	int len;
 	char *p, *ls;
 	int lastcolor;
@@ -1599,7 +1600,7 @@ static void CG_AddToTeamChat( const char *str ) {
 	if (cgs.teamChatPos - cgs.teamLastChatPos > chatHeight)
 		cgs.teamLastChatPos = cgs.teamChatPos - chatHeight;
 }
-
+*/
 /*
 ===============
 CG_MapRestart
@@ -2294,6 +2295,10 @@ static void CG_ServerCommand( void ) {
 	if ( !strcmp( cmd, "cp" ) ) {
 		//CG_CenterPrint( CG_Argv(1), SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
 		CG_CenterPrint( CG_Argv(1), SCREEN_HEIGHT * 0.30, CENTERPRINT_WIDTH );
+		if( !strcmp ( cmd, "^1Defend!" ) )
+			cgs.csStatus = 1;
+		if( !strcmp ( cmd, "^2Capture!" ) )
+			cgs.csStatus = 2;
 		return;
 	}
 
@@ -2579,7 +2584,7 @@ static void CG_ServerCommand( void ) {
 	}
 
         if ( !strcmp( cmd, "helpmotdclear" ) ) {
-		CG_ClearGenericConsole(&cgs.helpMotdConsole);
+		//CG_ClearGenericConsole(&cgs.helpMotdConsole);
 		if (cgs.sv_hostname[0]) {
 			CG_Printf( "%s%s\n", CG_Argv(1), cgs.sv_hostname );
 			CG_PrintfHelpMotd( "%s%s\n", CG_Argv(1), cgs.sv_hostname );

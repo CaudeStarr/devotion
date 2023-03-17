@@ -202,7 +202,7 @@ void CG_Respawn( void ) {
 	// select the weapon the server says we are using
 	cg.weaponSelect = cg.snap->ps.weapon;
 
-	CG_ResetStatusbar();
+	//CG_ResetStatusbar();
 }
 
 extern char *eventnames[];
@@ -334,7 +334,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 	int			health, armor;
 #endif
 	sfxHandle_t sfx;
-	int damage;
+	int damage, i;
 
 	// don't play the sounds if the player just changed teams
 	if ( ps->persistant[PERS_TEAM] != ops->persistant[PERS_TEAM] ) {
@@ -356,8 +356,13 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 		}
 #else
 */
-		cg.lastHitTime = cg.time;
-		cg.lastHitDamage = ps->persistant[PERS_DAMAGE_DONE] - ops->persistant[PERS_DAMAGE_DONE];
+		for( i = 63; i>0; i-- ){
+			cg.lastHitTime[i] = cg.lastHitTime[i-1];
+			cg.lastHitDamage[i] = cg.lastHitDamage[i-1];
+		}
+
+		cg.lastHitTime[0] = cg.time;
+		cg.lastHitDamage[0] = ps->persistant[PERS_DAMAGE_DONE] - ops->persistant[PERS_DAMAGE_DONE];
 
 		if (cg_hitsound.integer == 2) {
 			trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );

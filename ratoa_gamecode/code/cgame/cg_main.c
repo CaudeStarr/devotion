@@ -482,6 +482,17 @@ vmCvar_t	cg_teamChatBeep;
 
 vmCvar_t	cg_ui_clientCommand;
 
+vmCvar_t	cg_lowHealthPercentile;
+vmCvar_t	cg_inverseTimer;
+vmCvar_t	cg_selfOnTeamOverlay;
+vmCvar_t	cg_deathNoticeTime;
+vmCvar_t	cg_drawCenterprint;
+vmCvar_t	cg_crosshairHitColorStyle;
+vmCvar_t	cg_crosshairHitColorTime;
+vmCvar_t	cg_drawItemPickups;
+vmCvar_t	cg_drawAccel;
+vmCvar_t	cg_mapoverview;
+
 #define MASTER_SERVER_NAME "dpmaster.deathmask.net"
 
 typedef struct {
@@ -492,6 +503,7 @@ typedef struct {
 } cvarTable_t;
 
 static cvarTable_t cvarTable[] = { // bk001129
+	//{ &cl_maxpackets, "cl_maxpackets", "125", CVAR_CHEAT },
 	{ &sv_master1, "sv_master1", MASTER_SERVER_NAME, CVAR_ARCHIVE },
 	{ &cg_ignore, "cg_ignore", "0", 0 },	// used for debugging
 	{ &cg_autoswitch, "cg_autoswitch", "0", CVAR_ARCHIVE },
@@ -706,7 +718,7 @@ static cvarTable_t cvarTable[] = { // bk001129
 	{ &cg_drawSpawnpoints, "cg_drawSpawnpoints", "1", CVAR_ARCHIVE},
 	{ &cg_teamOverlayScale, "cg_teamOverlayScale", "0.7", CVAR_ARCHIVE},
 	{ &cg_teamOverlayAutoColor, "cg_teamOverlayAutoColor", "1", CVAR_ARCHIVE},
-	{ &cg_drawTeamBackground, "cg_drawTeamBackground", "1", CVAR_ARCHIVE},
+	{ &cg_drawTeamBackground, "cg_drawTeamBackground", "0", CVAR_ARCHIVE},
 	{ &cg_timerAlpha  ,     "cg_timerAlpha", "1", CVAR_ARCHIVE},
 	{ &cg_fpsAlpha    ,     "cg_fpsAlpha", "0.5", CVAR_ARCHIVE},
 	{ &cg_speedAlpha  ,     "cg_speedAlpha", "0.5", CVAR_ARCHIVE},
@@ -777,9 +789,9 @@ static cvarTable_t cvarTable[] = { // bk001129
 	{ &cg_teamHeadColorAuto ,      "cg_teamHeadColorAuto", "0", CVAR_ARCHIVE},
 	{ &cg_enemyHeadColorAuto ,      "cg_enemyHeadColorAuto", "0", CVAR_ARCHIVE},
 
-	{ &cg_enemyCorpseSaturation ,     "cg_enemyCorpseSaturation", "0.50", CVAR_ARCHIVE},
+	{ &cg_enemyCorpseSaturation ,     "cg_enemyCorpseSaturation", "", CVAR_ARCHIVE},
 	{ &cg_enemyCorpseValue ,          "cg_enemyCorpseValue", "0.2", CVAR_ARCHIVE},
-	{ &cg_teamCorpseSaturation ,      "cg_teamCorpseSaturation", "0.50", CVAR_ARCHIVE},
+	{ &cg_teamCorpseSaturation ,      "cg_teamCorpseSaturation", "", CVAR_ARCHIVE},
 	{ &cg_teamCorpseValue ,           "cg_teamCorpseValue", "0.2", CVAR_ARCHIVE},
 
 	{ &cg_itemFade ,           "cg_itemFade", "1", CVAR_ARCHIVE},
@@ -888,7 +900,18 @@ static cvarTable_t cvarTable[] = { // bk001129
         {&cg_chatBeep, "cg_chatBeep", "2", CVAR_ARCHIVE },
         {&cg_teamChatBeep, "cg_teamChatBeep", "2", CVAR_ARCHIVE },
 
-        {&cg_ui_clientCommand, "cg_ui_clientCommand", "", CVAR_ROM }
+        {&cg_ui_clientCommand, "cg_ui_clientCommand", "", CVAR_ROM },
+
+	{&cg_lowHealthPercentile, "cg_lowHealthPercentile", "30", CVAR_ARCHIVE },
+	{&cg_inverseTimer, "cg_inverseTimer", "0", CVAR_ARCHIVE},
+	{&cg_selfOnTeamOverlay, "cg_selfOnTeamOverlay", "1", CVAR_ARCHIVE},
+	{&cg_deathNoticeTime, "cg_deathNoticeTime", "5", CVAR_ARCHIVE},
+	{&cg_drawCenterprint, "cg_drawCenterprint", "1", CVAR_ARCHIVE},
+	{&cg_crosshairHitColorStyle, "cg_crosshairHitColorStyle", "1", CVAR_ARCHIVE},
+	{&cg_crosshairHitColorTime, "cg_crosshairHitColorTime", "3", CVAR_ARCHIVE},
+	{&cg_drawItemPickups, "cg_drawItemPickups", "1", CVAR_ARCHIVE},
+	{&cg_drawAccel, "cg_drawAccel", "1", CVAR_ARCHIVE},
+	{&cg_mapoverview, "cg_mapOverview", "0", CVAR_ARCHIVE}
 };
 
 static int  cvarTableSize = sizeof( cvarTable ) / sizeof( cvarTable[0] );
@@ -1188,7 +1211,7 @@ void CG_UpdateCvars( void ) {
 			CG_Cvar_ClampInt( cv->cvarName, cv->vmCvar, 0, 250 );
 		}
                 else if ( cv->vmCvar == &com_maxfps ) {
-			CG_Cvar_ClampInt( cv->cvarName, cv->vmCvar, 0, 250 );
+			CG_Cvar_ClampInt( cv->cvarName, cv->vmCvar, 0, 500 );
 		}
                 else if ( cv->vmCvar == &sv_fps ) {
 			if (cv->vmCvar->integer < 1) {
@@ -1305,7 +1328,8 @@ void QDECL CG_PrintfHelpMotd(const char *msg, ... ) {
 	Q_vsnprintf (text, sizeof(text), msg, argptr);
 	va_end (argptr);
 
-	CG_AddToGenericConsole(text, &cgs.helpMotdConsole);
+	//CG_AddToGenericConsole(text, &cgs.helpMotdConsole);
+	CG_AddToConsole(text);
 }
 
 void QDECL CG_PrintfChat( qboolean team, const char *msg, ... ) {
@@ -1318,11 +1342,14 @@ void QDECL CG_PrintfChat( qboolean team, const char *msg, ... ) {
 
 	if (cg_newConsole.integer) {
 		if (team) {
-			CG_AddToGenericConsole(text, &cgs.teamChat);
+			//CG_AddToGenericConsole(text, &cgs.teamChat);
+			CG_AddToTeamChat(text);
 		} else {
-			CG_AddToGenericConsole(text, &cgs.chat);
+			//CG_AddToGenericConsole(text, &cgs.chat);
+			CG_AddToChat(text);
 		}
-		CG_AddToGenericConsole(text, &cgs.commonConsole);
+		//CG_AddToGenericConsole(text, &cgs.commonConsole);
+		CG_AddToConsole(text);
 	}
 	trap_Print( text );
 }
@@ -1336,8 +1363,11 @@ void QDECL CG_Printf( const char *msg, ... ) {
 	va_end (argptr);
 
 	if (cg_newConsole.integer) {
+/*
 		CG_AddToGenericConsole(text, &cgs.console);
 		CG_AddToGenericConsole(text, &cgs.commonConsole);
+*/
+		CG_AddToConsole(text);
 	}
 	trap_Print( text );
 }
@@ -1581,7 +1611,7 @@ static void CG_RegisterSounds( void ) {
 		cgs.media.takenYourTeamSound = trap_S_RegisterSound( "sound/teamplay/flagtaken_yourteam.wav", qtrue ); //ok
 		cgs.media.takenOpponentSound = trap_S_RegisterSound( "sound/teamplay/flagtaken_opponent.wav", qtrue ); //ok
 
-		cgs.media.flagDroppedSound = trap_S_RegisterSound( "sound/teamplay/flagret_blu.wav", qtrue );
+		cgs.media.flagDroppedSound = trap_S_RegisterSound( "sound/teamplay/flagtk_blu.wav", qtrue );
 
 		cgs.media.pingLocationSound = trap_S_RegisterSound( "sound/teamplay/ping-info.wav", qfalse );
 		cgs.media.pingLocationLowSound = trap_S_RegisterSound( "sound/teamplay/ping-info-5.wav", qfalse );
@@ -2118,6 +2148,9 @@ static void CG_RegisterGraphics( void ) {
 		cgs.media.blueFlagShader[0] = trap_R_RegisterShader( "icons/iconf_blu1" );
 		cgs.media.blueFlagShader[1] = trap_R_RegisterShader( "icons/iconf_blu2" );
 		cgs.media.blueFlagShader[2] = trap_R_RegisterShader( "icons/iconf_blu3" );
+		cgs.media.neutralFlagShader[0] = trap_R_RegisterShader( "icons/iconf_neu1" );
+		cgs.media.neutralFlagShader[1] = trap_R_RegisterShader( "icons/iconf_neu2" );
+		cgs.media.neutralFlagShader[2] = trap_R_RegisterShader( "icons/iconf_neu3" );
 		cgs.media.flagPoleModel = trap_R_RegisterModel( "models/flag2/flagpole.md3" );
 		cgs.media.flagFlapModel = trap_R_RegisterModel( "models/flag2/flagflap3.md3" );
 
@@ -3452,7 +3485,6 @@ static qboolean do_vid_restart = qfalse;
 void CG_FairCvars() {
     qboolean vid_restart_required = qfalse;
     char rendererinfos[128];
-    char clientinfos[128];
 
     if(cgs.gametype == GT_SINGLE_PLAYER) {
         trap_Cvar_VariableStringBuffer("r_vertexlight",rendererinfos,sizeof(rendererinfos) );
@@ -3586,12 +3618,6 @@ void CG_FairCvars() {
 	    }
     }
 
-    trap_Cvar_VariableStringBuffer("cl_maxpackets", clientinfos, sizeof(clientinfos));
-    if(atoi(clientinfos) != 125 ){ // L0neStarr
-        trap_Cvar_Set("cl_maxpackets", "125");
-    }
-    // SBOPN: L0neStarr recommended 125 over 250 to avoid netcode issues
-    trap_Cvar_VariableStringBuffer("com_maxfps", clientinfos, sizeof(clientinfos));
     if(vid_restart_required && do_vid_restart)
         trap_SendConsoleCommand("vid_restart\n");
 

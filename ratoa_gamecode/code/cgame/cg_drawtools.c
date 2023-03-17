@@ -182,6 +182,196 @@ float CG_DrawPicSquareByHeight( float x, float y, float height, qhandle_t hShade
 	return width;
 }
 
+/*
+================
+CG_DrawLine
+
+Coordinates are 640*480 virtual values
+=================
+*/
+void CG_DrawLine( float x1, float y1, float x2, float y2, float* color ) {
+	int i;
+	int diffx = (int)x2-(int)x1;
+	int diffy = (int)y2-(int)y1;
+	int length = (int)sqrt(diffx*diffx+diffy*diffy);
+	for( i = 0; i < length; i++ ){
+		CG_FillRect(x1+diffx*i/length, y1+diffy*i/length, 1, 1, color);
+	}
+}
+
+/*
+================
+CG_DrawHudIcon
+
+Draws an icon defined
+in the hudfile
+
+TODO: add function CG_SetTeamColor( vec4_t *color )
+and CG_SetTeamBGColor( vec4_t *color )
+=================
+*/
+void CG_DrawHudIcon( int hudnumber, qboolean override, qhandle_t hShader ) {
+        hudElements_t hudelement = cgs.hud[hudnumber];
+        vec4_t color;
+
+        if( !hudelement.inuse )
+                return;
+
+        if( cgs.gametype >= GT_TEAM && hudelement.teamBgColor == 1 ){
+                if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+                        color[0] = 1;
+                        color[1] = 0;
+                        color[2] = 0;
+                } else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+                        color[0] = 0;
+                        color[1] = 0;
+                        color[2] = 1;
+                }
+        }
+        else if( cgs.gametype >= GT_TEAM && hudelement.teamBgColor == 2 ){
+                if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+                        color[0] = 1;
+                        color[1] = 0;
+                        color[2] = 0;
+                } else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+                        color[0] = 0;
+                        color[1] = 0;
+                        color[2] = 1;
+                }
+        }
+        else{
+                color[0] = hudelement.bgcolor[0];
+                color[1] = hudelement.bgcolor[1];
+                color[2] = hudelement.bgcolor[2];
+        }
+        color[3] = hudelement.bgcolor[3];
+
+        if( hudelement.fill ){
+                CG_FillRect( hudelement.xpos, hudelement.ypos, hudelement.width, hudelement.height, color );
+        }
+        else{
+                CG_DrawRect( hudelement.xpos, hudelement.ypos, hudelement.width, hudelement.height, 1.0f, color );
+        }
+
+        if( cgs.gametype >= GT_TEAM && hudelement.teamColor == 1 ){
+                if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+                        color[0] = 1;
+                        color[1] = 0;
+                        color[2] = 0;
+                } else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+                        color[0] = 0;
+                        color[1] = 0;
+                        color[2] = 1;
+                }
+        }
+        else if( cgs.gametype >= GT_TEAM && hudelement.teamColor == 2 ){
+                if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+                        color[0] = 1;
+                        color[1] = 0;
+                        color[2] = 0;
+                } else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+                        color[0] = 0;
+                        color[1] = 0;
+                        color[2] = 1;
+                }
+        }
+        else{
+                color[0] = hudelement.color[0];
+                color[1] = hudelement.color[1];
+                color[2] = hudelement.color[2];
+        }
+        color[3] = hudelement.color[3];
+
+        trap_R_SetColor(color);
+
+        if( hudelement.imageHandle && override ){
+                CG_DrawPic(hudelement.xpos, hudelement.ypos, hudelement.width, hudelement.height, hudelement.imageHandle);
+                return;
+        }
+        if( hShader ){
+                CG_DrawPic(hudelement.xpos, hudelement.ypos, hudelement.width, hudelement.height, hShader);
+        }
+        trap_R_SetColor( NULL );
+}
+
+/*
+================
+CG_DrawScoresHud
+
+Draws the scores
+(enemy, own, scorelimit)
+if defined in hud
+
+TODO: add function CG_SetTeamColor( vec4_t *color )
+and CG_SetTeamBGColor( vec4_t *color )
+=================
+*/
+void CG_DrawScoresHud( int hudnumber, const char* text, qboolean spec ){
+        hudElements_t hudelement = cgs.hud[hudnumber];
+        vec4_t color;
+        int x,y, w;
+        qboolean shadow;
+
+        if( !hudelement.inuse )
+                return;
+
+        shadow = hudelement.textstyle & 1;
+        if( !spec ){
+                if( cgs.gametype >= GT_TEAM && hudelement.teamBgColor == 1 ){
+                        if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+                                color[0] = 1;
+                                color[1] = 0;
+                                color[2] = 0;
+                        } else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+                                color[0] = 0;
+                                color[1] = 0;
+                                color[2] = 1;
+                        }
+                }
+                else if( cgs.gametype >= GT_TEAM && hudelement.teamBgColor == 2 ){
+                        if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+                                color[0] = 1;
+                                color[1] = 0;
+                                color[2] = 0;
+                        } else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+                                color[0] = 0;
+                                color[1] = 0;
+                                color[2] = 1;
+                        }
+                }
+                else{
+                        color[0] = hudelement.bgcolor[0];
+                        color[1] = hudelement.bgcolor[1];
+                        color[2] = hudelement.bgcolor[2];
+                }
+        color[3] = hudelement.bgcolor[3];
+        }
+        else{
+                color[0] = color[1] = color[2] = color[3] = 0.5f;
+        }
+        CG_FillRect( hudelement.xpos, hudelement.ypos, hudelement.width, hudelement.height, color );
+
+        y = hudelement.ypos + hudelement.height/2 - hudelement.fontHeight/2;
+
+        w = CG_DrawStrlen(text) * hudelement.fontWidth;
+
+        if( hudelement.textAlign == 0 )
+                x = hudelement.xpos;
+        else if( hudelement.textAlign == 2 )
+                x = hudelement.xpos + hudelement.width - w;
+        else
+                x = hudelement.xpos + hudelement.width/2 - w/2;
+
+        color[0] = hudelement.color[0];
+        color[1] = hudelement.color[1];
+        color[2] = hudelement.color[2];
+        color[3] = hudelement.color[3];
+
+        CG_DrawStringExt( x, y, text, color, qfalse, shadow, hudelement.fontWidth, hudelement.fontHeight, 0 );
+}
+
+
+
 qhandle_t CG_SelectFont(float width, float height) {
 	if (!cg_newFont.integer) {
 		return cgs.media.charsetShader;
@@ -410,6 +600,80 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 		s++;
 	}
 	trap_R_SetColor( NULL );
+}
+
+/*
+================
+CG_DrawStringHud
+
+Draws a string
+if defined in hud
+
+TODO: add function CG_SetTeamColor( vec4_t *color )
+and CG_SetTeamBGColor( vec4_t *color )
+
+maybe add override for some elements
+=================
+*/
+void CG_DrawStringHud( int hudnumber, qboolean colorize, const char* text ){
+        hudElements_t hudelement = cgs.hud[hudnumber];
+        int w, x;
+        vec4_t color;
+        qboolean shadow = (hudelement.textstyle & 1);
+
+        if( !hudelement.inuse ){
+                return;
+        }
+
+        CG_DrawHudIcon( hudnumber, qtrue, hudelement.imageHandle );
+
+        w = CG_DrawStrlen(text) * hudelement.fontWidth;
+
+        if( hudelement.textAlign == 0 )
+                x = hudelement.xpos;
+        else if( hudelement.textAlign == 2 )
+                x = hudelement.xpos + hudelement.width - w;
+        else
+                x = hudelement.xpos + hudelement.width/2 - w/2;
+
+	if( colorize ){
+                if( cgs.gametype >= GT_TEAM && hudelement.teamColor == 1 ){
+                        if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+                                color[0] = 1;
+                                color[1] = 0;
+                                color[2] = 0;
+                        } else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+                                color[0] = 0;
+                                color[1] = 0;
+                                color[2] = 1;
+                        }
+                }
+                else if( cgs.gametype >= GT_TEAM && hudelement.teamColor == 2 ){
+                        if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+                                color[0] = 1;
+                                color[1] = 0;
+                                color[2] = 0;
+                        } else if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED ) {
+                                color[0] = 0;
+                                color[1] = 0;
+                                color[2] = 1;
+                        }
+                }
+                else{
+                        color[0] = hudelement.color[0];
+                        color[1] = hudelement.color[1];
+                        color[2] = hudelement.color[2];
+                }
+                color[3] = hudelement.color[3];
+        }
+        else {
+                color[0] = 1.0;
+                color[1] = 1.0;
+                color[2] = 1.0;
+                color[3] = 1.0;
+        }
+
+        CG_DrawStringExt( x, hudelement.ypos, text, color, qfalse, shadow, hudelement.fontWidth, hudelement.fontHeight, 0 );
 }
 
 void CG_DrawScoreString( int x, int y, const char *s, float alpha, int maxchars ) {
